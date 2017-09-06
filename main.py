@@ -24,13 +24,13 @@ GPIO.setup(GPIO_ECHO,GPIO.IN)      # Echo
 # Set trigger to False (Low)
 GPIO.output(GPIO_TRIGGER, False)
 
-#GPIO.setup(17, GPIO.IN)			#Read button
+GPIO.setup(17, GPIO.IN)			#Read button
 
 intruder= False
 startime = time.time()
 isPlayingPause = False
 
-cmd = "omxplayer /mnt/usb/flower.mp4 --loop --no-osd --win 100,100,740,460"
+cmd = "omxplayer /home/pi/relic/flower.mp4 --loop --no-osd --win 100,100,740,460"
 #cmd = "omxplayer /mnt/usb/flower.mp4 --loop --no-osd"
 omxp = Popen ([cmd], shell=True)
 
@@ -87,11 +87,12 @@ def RewindMovie() :
 try:
 
 	while isRunning:
+		button_value = GPIO.input(17)
 		
 		distance = measure_average()
 		print ("Distance : %.1f" % distance) 
 		
-		if distance < 50 :
+		if distance < 40 :
 			intruder = True
 		else :
 			intruder = False
@@ -104,7 +105,7 @@ try:
 				isPlayingPause = False
 				RewindMovie()
 				
-			if t > 8 : #manually loop after 10 seconds
+			if t > 7 : #manually loop after 10 seconds
 				RewindMovie()
 		else :
 			if isPlayingPause == False :
@@ -115,14 +116,15 @@ try:
 				TogglePause()
 			
 			
-		#if button_value == False:
-			#print('The button 2 has been pressed...\r')
-			#isRunning = False
-			#Quit()
-			##os.system("sudo shutdown -h now")
-			#while button_value == False:
-				#button_value = GPIO.input(17)
-		time.sleep(.5)
+		if button_value == False:
+			print('The button 2 has been pressed...\r')
+			isRunning = False
+			Quit()
+			#time.sleep(1)
+			#os.system("sudo shutdown -h now")
+			while button_value == False:
+				button_value = GPIO.input(17)
+		time.sleep(.1)
 		
 except KeyboardInterrupt:
 	Quit()
