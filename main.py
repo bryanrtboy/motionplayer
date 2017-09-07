@@ -29,21 +29,23 @@ GPIO.setup(17, GPIO.IN)			#Read button
 intruder= False
 startime = time.time()
 isPlayingPause = False
+hitCount = 0
+maxHits = 10
 
-cmd = "omxplayer /home/pi/relic/flower.mp4 --loop --no-osd --win 100,100,740,460"
-#cmd = "omxplayer /mnt/usb/flower.mp4 --loop --no-osd"
+#cmd = "omxplayer /home/pi/relic/flower.mp4 --loop --no-osd --win 100,100,740,460"
+cmd = "omxplayer /home/pi/relic/flower.mp4 --loop --no-osd --aspect-mode stretch"
 omxp = Popen ([cmd], shell=True)
 
 isRunning = True
 
 def PlayMovieAt(pos) :
 	global startime
-	cmd = "~/dbuscontrol.sh setposition " + pos
+	cmd = "/home/pi/dbuscontrol.sh setposition " + pos
 	Popen([cmd], shell=True)
 	startime = time.time()
 
 def TogglePause() :
-	cmd = "~/dbuscontrol.sh pause"
+	cmd = "/home/pi/dbuscontrol.sh pause"
 	Popen([cmd], shell=True)
 	
 def measure():
@@ -79,6 +81,8 @@ def measure_average():
 def Quit() :
 	print("Quit")
 	GPIO.cleanup()
+        time.sleep(1)
+        os.system("sudo shutdown -h now") #need to keep this because omxplayer is not quitting properly...
 
 def RewindMovie() :
 	PlayMovieAt("0")
@@ -92,10 +96,13 @@ try:
 		distance = measure_average()
 		print ("Distance : %.1f" % distance) 
 		
-		if distance < 40 :
+		if distance < 60 :
 			intruder = True
 		else :
-			intruder = False
+			hitCount += 1
+			if hitCount > maxHits :
+				intruder = False
+				hitCount=0
 			
 		t = int(round( time.time() - startime))
 		
@@ -107,20 +114,19 @@ try:
 				
 			if t > 7 : #manually loop after 10 seconds
 				RewindMovie()
-		else :
-			if isPlayingPause == False :
-				print("Intruder Alert!")
-				isPlayingPause = True
-				PlayMovieAt("10000000")
-				time.sleep(2.5) #When True, will only unpause after 2 seconds
-				TogglePause()
+		elif isPlayingPause == False :
+			print("Intruder Alert!")
+			isPlayingPause = True
+			PlayMovieAt("10000000")
+			time.sleep(2.5) #When True, will only unpause after 2 seconds
+			TogglePause()
 			
 			
 		if button_value == False:
 			print('The button 2 has been pressed...\r')
 			isRunning = False
 			Quit()
-			#time.sleep(1)
+			time.sleep(1)
 			#os.system("sudo shutdown -h now")
 			while button_value == False:
 				button_value = GPIO.input(17)
