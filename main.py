@@ -32,8 +32,8 @@ isPlayingPause = False
 hitCount = 0
 maxHits = 10
 
-#cmd = "omxplayer /home/pi/relic/flower.mp4 --loop --no-osd --win 100,100,740,460"
-cmd = "omxplayer /home/pi/relic/flower.mp4 --loop --no-osd --aspect-mode stretch"
+#cmd = "omxplayer /home/pi/relic/flower3.mp4 --loop --no-osd --win 300,100,600,300"
+cmd = "omxplayer /home/pi/relic/flower3.mp4 --loop --no-osd --aspect-mode stretch"
 omxp = Popen ([cmd], shell=True)
 
 isRunning = True
@@ -94,7 +94,7 @@ try:
 		button_value = GPIO.input(17)
 		
 		distance = measure_average()
-		print ("Distance : %.1f" % distance) 
+#		print ("Distance : %.1f" % distance) 
 		
 		if distance < 60 :
 			intruder = True
@@ -109,21 +109,25 @@ try:
 		if intruder == False : 
 			if isPlayingPause == True :
 				TogglePause()
+				time.sleep(3.9) #unpause and play a bit before reset
 				isPlayingPause = False
 				RewindMovie()
 				
-			if t > 7 : #manually loop after 10 seconds
+			if t > 15 : #manually loop after 15 seconds
 				RewindMovie()
 		elif isPlayingPause == False :
-			print("Intruder Alert!")
+#			print("Intruder Alert!")
 			isPlayingPause = True
-			PlayMovieAt("10000000")
-			time.sleep(2.5) #When True, will only unpause after 2 seconds
+			if random.random() > .5 :
+				PlayMovieAt("24000000")
+			else :
+				PlayMovieAt("16000000")
+			time.sleep(4.5) #When True, will only pause after x seconds
 			TogglePause()
 			
 			
 		if button_value == False:
-			print('The button 2 has been pressed...\r')
+#			print('The button 2 has been pressed...\r')
 			isRunning = False
 			Quit()
 			time.sleep(1)
